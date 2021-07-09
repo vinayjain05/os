@@ -38,11 +38,11 @@ int main(){
         cin>>p[i].pid;
         cout<<"Enter Arrival time for P"<<p[i].pid<<": ";
         cin>>p[i].at;
-        cout<<"Enter cpu Burst time 1 for P"<<i<<": ";
+        cout<<"Enter cpu Burst time 1 for P"<<p[i].pid<<": ";
         cin>>p[i].bt;
-        cout<<"Enter i/o Burst time for P"<<i<<": ";
+        cout<<"Enter i/o Burst time for P"<<p[i].pid<<": ";
         cin>>p[i].io;
-        cout<<"Enter cpu Burst time 2 for P"<<i<<": ";
+        cout<<"Enter cpu Burst time 2 for P"<<p[i].pid<<": ";
         cin>>p[i].bt2;
         p[i].btin=p[i].bt;
         p[i].btin2=p[i].bt2;
