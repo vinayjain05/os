@@ -118,6 +118,11 @@ int main(){
                 p[loc].completed[0]=1;
                 t+=p[loc].bt;
                 p[loc].ct[0]=t;
+                if(p[loc].ioin==0){
+                    p[loc].ct[1]=t;
+                    p[loc].completed[2]=1;
+                    comp++;
+                }
                 
             }
         
@@ -130,7 +135,7 @@ int main(){
                 p[loc].completed[2]=1;
                 t+=p[loc].bt2;
                 p[loc].ct[1]=t;
-                comp++;
+               //
             }
         
             else{
@@ -163,8 +168,10 @@ int main(){
         }
         else if(flag==2){
             p[loc].bt2-=q;
-            if(p[loc].bt2<0){
+            if(p[loc].bt2<=0){
                 p[loc].bt2=0;
+                
+                comp++;
             }
         }   
     }
