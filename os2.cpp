@@ -463,15 +463,15 @@ int main()
     float fcfs[2], rr[2], sjf[2];
 
     first_come_first_serve(n, fcfs);
-    cout << "FCFS Result: " << fcfs[0] << " " << fcfs[1] << "\n";
+    
     value_initializer(); //initializes values of processes back to original for subsequent steps
 
     round_robin(n, rr);
-    cout << "Round Robin Result: " << rr[0] << " " << rr[1] << "\n";
+    
     value_initializer();
 
     shortest_job_first(n, sjf);
-    cout << "SJF Result: " << sjf[0] << " " << sjf[1] << "\n";
+    
     value_initializer();
 
     t = p[0].at;
@@ -619,12 +619,12 @@ int main()
     }
 
     float att = 0.0, awt = 0.0;
-    cout << setw(18) << "Process ID" << setw(18) << "Arrival Time" << setw(18) << "Burst Time" << setw(18) << "i/o Burst Time" << setw(18) << "Burst Time" << setw(18) << "Waiting Time" << setw(18) << "Turn-around Time" << endl;
+    cout << setw(25) << "Process ID" << setw(25) << "Arrival Time" << setw(25) << "Burst Time" << setw(25) << "i/o Burst Time" << setw(25) << "Burst Time" << setw(25) << "Waiting Time" << setw(25) << "Turn-around Time" << endl;
     for (int i = 0; i < n; i++)
     {
         p[i].tt = p[i].ct[1] - p[i].at;
         p[i].wt = p[i].ct[1] - p[i].btin - p[i].btin2 - p[i].at;
-        cout << setw(18) << p[i].pid << setw(18) << p[i].at << setw(18) << p[i].btin << setw(18) << p[i].ioin << setw(18) << p[i].btin2 << setw(18) << p[i].wt << setw(18) << p[i].tt << endl;
+        cout << setw(25) << p[i].pid << setw(25) << p[i].at << setw(25) << p[i].btin << setw(25) << p[i].ioin << setw(25) << p[i].btin2 << setw(25) << p[i].wt << setw(25) << p[i].tt << endl;
         att += p[i].tt;
         awt += p[i].wt;
     }
@@ -633,6 +633,10 @@ int main()
 
     cout << "Average Turn-around Time: " << att << "\n"
          << "Average Waiting Time: " << awt << "\n"
-         << "Throughput: " << (t - p[0].at) / n;
+         << "Throughput: " << (t - p[0].at) / n<<"\n";
+    cout<<"Comparision Table"<<endl;
+    cout << setw(25) << " " << setw(25) << "FCFS" << setw(25) << "SJF" << setw(25) << "Round Robin" << setw(25) << "NewAlgo" << endl;
+    cout << setw(25) << "Average Waiting Time " << setw(25) << fcfs[0] << setw(25) << sjf[0] << setw(25) << rr[0] << setw(25) << awt << endl;
+    cout << setw(25) << "Average Turnaround Time " << setw(25) << fcfs[1] << setw(25) << sjf[1] << setw(25) << rr[1] << setw(25) << att << endl;    
     return 0;
 }
