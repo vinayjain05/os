@@ -633,7 +633,7 @@ int main()
 
     cout << "Average Turn-around Time: " << att << "\n"
          << "Average Waiting Time: " << awt << "\n"
-         << "Throughput: " << (t - p[0].at) / n<<"\n";
+         << "Throughput: " <<n/(t - p[0].at)<<"\n";
     cout<<"Comparision Table"<<endl;
     cout << setw(25) << " " << setw(25) << "FCFS" << setw(25) << "SJF" << setw(25) << "Round Robin" << setw(25) << "NewAlgo" << endl;
     cout << setw(25) << "Average Waiting Time " << setw(25) << fcfs[0] << setw(25) << sjf[0] << setw(25) << rr[0] << setw(25) << awt << endl;
