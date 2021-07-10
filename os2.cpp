@@ -170,7 +170,7 @@ void shortest_job_first(int n, float sjf[])
     sjf[1] = turnaround_time / n;
 }
 
-void round_robin(int n, float rr[], int quant = 3)
+void round_robin(int n, float rr[], int quant = 1)
 {
     int comp_time[10] = {0}, cpu_end[10] = {0}, t = p[0].at, f = 1, completed = 0, orig_quant = quant;
     int first = 0;
@@ -179,22 +179,22 @@ void round_robin(int n, float rr[], int quant = 3)
     {
         q = p[0].bt;
         p[0].bt = 0;
-        quant -= q;
     }
     else
     {
         q = quant;
         p[0].bt = p[0].bt - q;
-        quant = 0;
     }
     t += q;
     int j = 0;
     int nval = 0;
     cpu_end[0] = t;
     int l = 0;
+    int entry = 0;
     while (f)
     {
         first = 0;
+
         for (int i = 0; i < n; i++)
         {
             if (p[i].at <= t)
@@ -210,6 +210,13 @@ void round_robin(int n, float rr[], int quant = 3)
                 }
             }
         }
+
+        if (completed >= n)
+        {
+            f = 0;
+            break;
+        }
+        entry = 0;
         for (int i = 0; i < n; i++)
         {
             if (p[i].at <= t)
@@ -221,10 +228,9 @@ void round_robin(int n, float rr[], int quant = 3)
                         p[i].io = p[i].io - (t - cpu_end[i]);
                         cpu_end[i] = t;
                     }
-
-                    if (i >= j)
+                    if (i > j)
                     {
-
+                        entry = 1;
                         if (p[i].bt <= 0 && p[i].bt2 <= 0 && p[i].io <= 0)
                         {
                             comp_time[i] = t;
@@ -238,7 +244,7 @@ void round_robin(int n, float rr[], int quant = 3)
                             {
                                 q = p[i].bt;
                                 p[i].bt = 0;
-                                quant -= q;
+                                quant = 0;
                             }
                             else
                             {
@@ -273,7 +279,8 @@ void round_robin(int n, float rr[], int quant = 3)
                             {
                                 q = p[i].bt2;
                                 p[i].bt2 = 0;
-                                quant -= q;
+
+                                quant = 0;
                             }
                             else
                             {
@@ -286,6 +293,11 @@ void round_robin(int n, float rr[], int quant = 3)
                             break;
                         }
                     }
+                    if (j > n - 1)
+                    {
+                        j++;
+                        break;
+                    }
                 }
             }
             else
@@ -297,11 +309,19 @@ void round_robin(int n, float rr[], int quant = 3)
         if (quant <= 0)
             quant = orig_quant;
         if (!nval)
-            j += l;
+            j = (l == 0 ? j + 1 : l);
+        if (!entry)
+        {
+            j = -1;
+            q = 0;
+        }
         if (completed >= n)
+        {
             f = 0;
-        if (j > n - 1)
-            j = 0;
+            break;
+        }
+        if (j >= n - 1)
+            j = -1;
         t += q;
         nval = 0;
     }
@@ -443,11 +463,11 @@ int main()
         cin >> p[i].pid;
         cout << "Enter Arrival time for P" << p[i].pid << ": ";
         cin >> p[i].at;
-        cout << "Enter cpu Burst time 1 for P" << i << ": ";
+        cout << "Enter cpu Burst time 1 for P" << p[i].pid << ": ";
         cin >> p[i].bt;
-        cout << "Enter i/o Burst time for P" << i << ": ";
+        cout << "Enter i/o Burst time for P" << p[i].pid << ": ";
         cin >> p[i].io;
-        cout << "Enter cpu Burst time 2 for P" << i << ": ";
+        cout << "Enter cpu Burst time 2 for P" << p[i].pid << ": ";
 
         cin >> p[i].bt2;
         p[i].btin = p[i].bt;
@@ -463,15 +483,15 @@ int main()
     float fcfs[2], rr[2], sjf[2];
 
     first_come_first_serve(n, fcfs);
-    
+
     value_initializer(); //initializes values of processes back to original for subsequent steps
 
     round_robin(n, rr);
-    
+
     value_initializer();
 
     shortest_job_first(n, sjf);
-    
+
     value_initializer();
 
     t = p[0].at;
@@ -633,10 +653,10 @@ int main()
 
     cout << "Average Turn-around Time: " << att << "\n"
          << "Average Waiting Time: " << awt << "\n"
-         << "Throughput: " <<n/(t - p[0].at)<<"\n";
-    cout<<"Comparision Table"<<endl;
+         << "Throughput: " << n / (t - p[0].at) << "\n";
+    cout << "Comparision Table" << endl;
     cout << setw(25) << " " << setw(25) << "FCFS" << setw(25) << "SJF" << setw(25) << "Round Robin" << setw(25) << "NewAlgo" << endl;
     cout << setw(25) << "Average Waiting Time " << setw(25) << fcfs[0] << setw(25) << sjf[0] << setw(25) << rr[0] << setw(25) << awt << endl;
-    cout << setw(25) << "Average Turnaround Time " << setw(25) << fcfs[1] << setw(25) << sjf[1] << setw(25) << rr[1] << setw(25) << att << endl;    
+    cout << setw(25) << "Average Turnaround Time " << setw(25) << fcfs[1] << setw(25) << sjf[1] << setw(25) << rr[1] << setw(25) << att << endl;
     return 0;
 }
