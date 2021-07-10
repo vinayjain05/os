@@ -9,7 +9,7 @@ int n;
 struct process
 {
     int pid;
-    float at, bt, btin, io, ioin, bt2, btin2, wt, tt;
+    float arrival_time, burst_time, burst_time_init, io, io_init, burst_time2, burst_time_init_2, waiting_time, turnaround_time;
     float ct[2];
     int completed[3];
 } p[10];
@@ -22,7 +22,7 @@ void sortByArrival()
     {
         for (int j = i + 1; j < n; j++)
         {
-            if (p[i].at > p[j].at)
+            if (p[i].arrival_time > p[j].arrival_time)
             {
                 temp = p[i];
                 p[i] = p[j];
@@ -34,13 +34,13 @@ void sortByArrival()
 
 void shortest_job_first(int n, float sjf[])
 {
-    int comp_time[10] = {0}, cpu_end[10] = {0}, t = p[0].at + p[0].bt, f = 1, completed = 0;
+    int completed_time[10] = {0}, cpu_end[10] = {0}, t = p[0].arrival_time + p[0].burst_time, f = 1, completed = 0;
     int first = 0;
-    int q = p[0].bt;
+    int q = p[0].burst_time;
     int qio = -1;
     int ioloc = 0, chgloc1 = -1, chgloc2 = -1;
     cpu_end[0] = t;
-    p[0].bt = 0;
+    p[0].burst_time = 0;
 
     while (f)
     {
@@ -52,14 +52,14 @@ void shortest_job_first(int n, float sjf[])
 
         for (int i = 0; i < n; i++)
         {
-            if (p[i].at <= t)
+            if (p[i].arrival_time <= t)
             {
-                if (comp_time[i] == 0)
+                if (completed_time[i] == 0)
                 {
 
-                    if (p[i].bt <= 0 && p[i].bt2 <= 0 && p[i].io <= 0)
+                    if (p[i].burst_time <= 0 && p[i].burst_time2 <= 0 && p[i].io <= 0)
                     {
-                        comp_time[i] = cpu_end[i];
+                        completed_time[i] = cpu_end[i];
                         completed++;
                     }
                 }
@@ -67,9 +67,9 @@ void shortest_job_first(int n, float sjf[])
         }
         for (int i = 0; i < n; i++)
         {
-            if (p[i].at <= t)
+            if (p[i].arrival_time <= t)
             {
-                if (comp_time[i] == 0)
+                if (completed_time[i] == 0)
                 {
                     if (cpu_end[i] != 0)
                     {
@@ -77,23 +77,23 @@ void shortest_job_first(int n, float sjf[])
                         cpu_end[i] = t;
                     }
 
-                    if (p[i].bt <= 0 && p[i].bt2 <= 0 && p[i].io <= 0)
+                    if (p[i].burst_time <= 0 && p[i].burst_time2 <= 0 && p[i].io <= 0)
                     {
-                        comp_time[i] = t;
+                        completed_time[i] = t;
                         completed++;
                         continue;
                     }
-                    else if (p[i].bt)
+                    else if (p[i].burst_time)
                     {
                         if (firstchg == 0)
                         {
-                            q = p[i].bt;
+                            q = p[i].burst_time;
                             chgloc1 = i;
                             firstchg = 1;
                         }
-                        else if (p[i].bt < q)
+                        else if (p[i].burst_time < q)
                         {
-                            q = p[i].bt;
+                            q = p[i].burst_time;
                             chgloc1 = i;
                         }
                         ioloc = -1;
@@ -118,17 +118,17 @@ void shortest_job_first(int n, float sjf[])
                         else
                             q = 1;
                     }
-                    else if (p[i].bt2)
+                    else if (p[i].burst_time2)
                     {
                         if (firstchg == 0)
                         {
-                            q = p[i].bt2;
+                            q = p[i].burst_time2;
                             chgloc2 = i;
                             firstchg = 1;
                         }
-                        else if (p[i].bt2 < q)
+                        else if (p[i].burst_time2 < q)
                         {
-                            q = p[i].bt2;
+                            q = p[i].burst_time2;
                             chgloc2 = i;
                         }
                         ioloc = -1;
@@ -142,12 +142,12 @@ void shortest_job_first(int n, float sjf[])
         {
             if (chgloc1 != -1)
             {
-                p[chgloc1].bt = 0;
+                p[chgloc1].burst_time = 0;
                 cpu_end[chgloc1] = t + q;
             }
             else
             {
-                p[chgloc2].bt2 = 0;
+                p[chgloc2].burst_time2 = 0;
                 cpu_end[chgloc2] = t + q;
             }
         }
@@ -163,8 +163,8 @@ void shortest_job_first(int n, float sjf[])
     float wait_time = 0, turnaround_time = 0;
     for (int i = 0; i < n; i++)
     {
-        wait_time += comp_time[i] - p[i].at - p[i].btin - p[i].btin2;
-        turnaround_time += comp_time[i] - p[i].at;
+        wait_time += completed_time[i] - p[i].arrival_time - p[i].burst_time_init - p[i].burst_time_init_2;
+        turnaround_time += completed_time[i] - p[i].arrival_time;
     }
     sjf[0] = wait_time / n;
     sjf[1] = turnaround_time / n;
@@ -172,18 +172,18 @@ void shortest_job_first(int n, float sjf[])
 
 void round_robin(int n, float rr[], int quant = 1)
 {
-    int comp_time[10] = {0}, cpu_end[10] = {0}, t = p[0].at, f = 1, completed = 0, orig_quant = quant;
+    int completed_time[10] = {0}, cpu_end[10] = {0}, t = p[0].arrival_time, f = 1, completed = 0, orig_quant = quant;
     int first = 0;
     int q;
-    if (quant > p[0].bt)
+    if (quant > p[0].burst_time)
     {
-        q = p[0].bt;
-        p[0].bt = 0;
+        q = p[0].burst_time;
+        p[0].burst_time = 0;
     }
     else
     {
         q = quant;
-        p[0].bt = p[0].bt - q;
+        p[0].burst_time = p[0].burst_time - q;
     }
     t += q;
     int j = 0;
@@ -197,14 +197,14 @@ void round_robin(int n, float rr[], int quant = 1)
 
         for (int i = 0; i < n; i++)
         {
-            if (p[i].at <= t)
+            if (p[i].arrival_time <= t)
             {
-                if (comp_time[i] == 0)
+                if (completed_time[i] == 0)
                 {
 
-                    if (p[i].bt <= 0 && p[i].bt2 <= 0 && p[i].io <= 0)
+                    if (p[i].burst_time <= 0 && p[i].burst_time2 <= 0 && p[i].io <= 0)
                     {
-                        comp_time[i] = cpu_end[i];
+                        completed_time[i] = cpu_end[i];
                         completed++;
                     }
                 }
@@ -219,37 +219,39 @@ void round_robin(int n, float rr[], int quant = 1)
         entry = 0;
         for (int i = 0; i < n; i++)
         {
-            if (p[i].at <= t)
+            if (p[i].arrival_time <= t)
             {
-                if (comp_time[i] == 0)
+                if (completed_time[i] == 0)
                 {
-                    if (cpu_end[i] != 0)
+                    if (cpu_end[i] != 0 && p[i].burst_time <= 0)
                     {
                         p[i].io = p[i].io - (t - cpu_end[i]);
                         cpu_end[i] = t;
                     }
+
                     if (i > j)
                     {
+
                         entry = 1;
-                        if (p[i].bt <= 0 && p[i].bt2 <= 0 && p[i].io <= 0)
+                        if (p[i].burst_time <= 0 && p[i].burst_time2 <= 0 && p[i].io <= 0)
                         {
-                            comp_time[i] = t;
+                            completed_time[i] = t;
                             completed++;
                             continue;
                         }
 
-                        else if (p[i].bt)
+                        else if (p[i].burst_time)
                         {
-                            if (quant > p[i].bt)
+                            if (quant > p[i].burst_time)
                             {
-                                q = p[i].bt;
-                                p[i].bt = 0;
+                                q = p[i].burst_time;
+                                p[i].burst_time = 0;
                                 quant = 0;
                             }
                             else
                             {
                                 q = quant;
-                                p[i].bt = p[i].bt - q;
+                                p[i].burst_time = p[i].burst_time - q;
                                 quant = 0;
                             }
                             cpu_end[i] = t + q;
@@ -273,19 +275,19 @@ void round_robin(int n, float rr[], int quant = 1)
                                 q = 1;
                             l = i;
                         }
-                        else if (p[i].bt2)
+                        else if (p[i].burst_time2)
                         {
-                            if (quant > p[i].bt2)
+                            if (quant > p[i].burst_time2)
                             {
-                                q = p[i].bt2;
-                                p[i].bt2 = 0;
+                                q = p[i].burst_time2;
+                                p[i].burst_time2 = 0;
 
                                 quant = 0;
                             }
                             else
                             {
                                 q = quant;
-                                p[i].bt2 = p[i].bt2 - q;
+                                p[i].burst_time2 = p[i].burst_time2 - q;
                                 quant = 0;
                             }
                             cpu_end[i] = t + q;
@@ -328,8 +330,8 @@ void round_robin(int n, float rr[], int quant = 1)
     float wait_time = 0, turnaround_time = 0;
     for (int i = 0; i < n; i++)
     {
-        wait_time += comp_time[i] - p[i].at - p[i].btin - p[i].btin2;
-        turnaround_time += comp_time[i] - p[i].at;
+        wait_time += completed_time[i] - p[i].arrival_time - p[i].burst_time_init - p[i].burst_time_init_2;
+        turnaround_time += completed_time[i] - p[i].arrival_time;
     }
     rr[0] = wait_time / n;
     rr[1] = turnaround_time / n;
@@ -337,12 +339,12 @@ void round_robin(int n, float rr[], int quant = 1)
 
 void first_come_first_serve(int n, float fcfs[])
 {
-    int comp_time[10] = {0}, cpu_end[10] = {0}, t = p[0].at + p[0].bt, f = 1, completed = 0;
+    int completed_time[10] = {0}, cpu_end[10] = {0}, t = p[0].arrival_time + p[0].burst_time, f = 1, completed = 0;
     int first = 0;
-    int q = p[0].bt;
+    int q = p[0].burst_time;
     int ioloc = 0;
     cpu_end[0] = t;
-    p[0].bt = 0;
+    p[0].burst_time = 0;
 
     while (f)
     {
@@ -351,14 +353,14 @@ void first_come_first_serve(int n, float fcfs[])
 
         for (int i = 0; i < n; i++)
         {
-            if (p[i].at <= t)
+            if (p[i].arrival_time <= t)
             {
-                if (comp_time[i] == 0)
+                if (completed_time[i] == 0)
                 {
 
-                    if (p[i].bt <= 0 && p[i].bt2 <= 0 && p[i].io <= 0)
+                    if (p[i].burst_time <= 0 && p[i].burst_time2 <= 0 && p[i].io <= 0)
                     {
-                        comp_time[i] = cpu_end[i];
+                        completed_time[i] = cpu_end[i];
                         completed++;
                     }
                 }
@@ -366,9 +368,9 @@ void first_come_first_serve(int n, float fcfs[])
         }
         for (int i = 0; i < n; i++)
         {
-            if (p[i].at <= t)
+            if (p[i].arrival_time <= t)
             {
-                if (comp_time[i] == 0)
+                if (completed_time[i] == 0)
                 {
                     if (cpu_end[i] != 0)
                     {
@@ -376,16 +378,16 @@ void first_come_first_serve(int n, float fcfs[])
                         cpu_end[i] = t;
                     }
 
-                    if (p[i].bt <= 0 && p[i].bt2 <= 0 && p[i].io <= 0)
+                    if (p[i].burst_time <= 0 && p[i].burst_time2 <= 0 && p[i].io <= 0)
                     {
-                        comp_time[i] = t;
+                        completed_time[i] = t;
                         completed++;
                         continue;
                     }
-                    else if (p[i].bt)
+                    else if (p[i].burst_time)
                     {
-                        q = p[i].bt;
-                        p[i].bt = 0;
+                        q = p[i].burst_time;
+                        p[i].burst_time = 0;
                         cpu_end[i] = t + q;
                         ioloc = -1;
                         break;
@@ -410,10 +412,10 @@ void first_come_first_serve(int n, float fcfs[])
                         else
                             q = 1;
                     }
-                    else if (p[i].bt2)
+                    else if (p[i].burst_time2)
                     {
-                        q = p[i].bt2;
-                        p[i].bt2 = 0;
+                        q = p[i].burst_time2;
+                        p[i].burst_time2 = 0;
                         cpu_end[i] = t + q;
                         ioloc = -1;
                         break;
@@ -434,20 +436,20 @@ void first_come_first_serve(int n, float fcfs[])
     float wait_time = 0, turnaround_time = 0;
     for (int i = 0; i < n; i++)
     {
-        wait_time += comp_time[i] - p[i].at - p[i].btin - p[i].btin2;
-        turnaround_time += comp_time[i] - p[i].at;
+        wait_time += completed_time[i] - p[i].arrival_time - p[i].burst_time_init - p[i].burst_time_init_2;
+        turnaround_time += completed_time[i] - p[i].arrival_time;
     }
-    fcfs[0] = wait_time / n;
-    fcfs[1] = turnaround_time / n;
+    fcfs[0] = (wait_time) / n;
+    fcfs[1] = (turnaround_time) / n;
 }
 
 void value_initializer()
 {
     for (int i = 0; i < n; i++)
     {
-        p[i].bt = p[i].btin;
-        p[i].bt2 = p[i].btin2;
-        p[i].io = p[i].ioin;
+        p[i].burst_time = p[i].burst_time_init;
+        p[i].burst_time2 = p[i].burst_time_init_2;
+        p[i].io = p[i].io_init;
     }
 }
 
@@ -462,19 +464,19 @@ int main()
         cout << "Enter PID: ";
         cin >> p[i].pid;
         cout << "Enter Arrival time for P" << p[i].pid << ": ";
-        cin >> p[i].at;
+        cin >> p[i].arrival_time;
         cout << "Enter cpu Burst time 1 for P" << p[i].pid << ": ";
-        cin >> p[i].bt;
+        cin >> p[i].burst_time;
         cout << "Enter i/o Burst time for P" << p[i].pid << ": ";
         cin >> p[i].io;
         cout << "Enter cpu Burst time 2 for P" << p[i].pid << ": ";
 
-        cin >> p[i].bt2;
-        p[i].btin = p[i].bt;
-        p[i].btin2 = p[i].bt2;
-        p[i].ioin = p[i].io;
-        p[i].wt = 0;
-        p[i].tt = 0;
+        cin >> p[i].burst_time2;
+        p[i].burst_time_init = p[i].burst_time;
+        p[i].burst_time_init_2 = p[i].burst_time2;
+        p[i].io_init = p[i].io;
+        p[i].waiting_time = 0;
+        p[i].turnaround_time = 0;
         p[i].completed[0] = 0;
         p[i].completed[1] = 0;
         p[i].completed[2] = 0;
@@ -494,7 +496,7 @@ int main()
 
     value_initializer();
 
-    t = p[0].at;
+    t = p[0].arrival_time;
     int comp = 0;
 
     while (comp < n)
@@ -507,11 +509,11 @@ int main()
         for (int i = 0; i < n; i++)
         {
             // Checking if process has arrived and is Incomplete
-            if (p[i].at <= t && p[i].completed[0] != 1)
+            if (p[i].arrival_time <= t && p[i].completed[0] != 1)
             {
 
                 // Calculating Response Ratio
-                temp = (p[i].bt + (p[i].wt)) / p[i].bt;
+                temp = (p[i].burst_time + (p[i].waiting_time)) / p[i].burst_time;
                 // Checking for Highest Response Ratio
                 if (hrr == temp)
                 {
@@ -532,11 +534,11 @@ int main()
                     flag = 0;
                 }
             }
-            else if ((p[i].ct[0] + p[i].ioin) <= t && p[i].completed[2] != 1)
+            else if ((p[i].ct[0] + p[i].io_init) <= t && p[i].completed[2] != 1)
             {
 
                 // Calculating Response Ratio
-                temp = (p[i].bt2 + (p[i].wt)) / p[i].bt2;
+                temp = (p[i].burst_time2 + (p[i].waiting_time)) / p[i].burst_time2;
                 // Checking for Highest Response Ratio
                 if (hrr == temp)
                 {
@@ -561,12 +563,12 @@ int main()
         // Checking if Remaining Burst Time of the Process(about to be executed) is less than/equal to quantum time
         if (flag == 0)
         {
-            if (p[loc].bt <= q && p[loc].bt > 0)
+            if (p[loc].burst_time <= q && p[loc].burst_time > 0)
             {
                 p[loc].completed[0] = 1;
-                t += p[loc].bt;
+                t += p[loc].burst_time;
                 p[loc].ct[0] = t;
-                if (p[loc].ioin == 0)
+                if (p[loc].io_init == 0)
                 {
                     p[loc].ct[1] = t;
                     p[loc].completed[2] = 1;
@@ -581,12 +583,11 @@ int main()
         }
         else if (flag == 2)
         {
-            if (p[loc].bt2 <= q && p[loc].bt2 > 0)
+            if (p[loc].burst_time2 <= q && p[loc].burst_time2 > 0)
             {
                 p[loc].completed[2] = 1;
-                t += p[loc].bt2;
+                t += p[loc].burst_time2;
                 p[loc].ct[1] = t;
-                //
             }
 
             else
@@ -600,63 +601,63 @@ int main()
         }
         for (int j = 0; j < n; j++)
         {
-            if (p[j].at <= t && p[j].completed[0] != 1 && j != loc)
+            if (p[j].arrival_time <= t && p[j].completed[0] != 1 && j != loc)
             {
-                p[j].wt = t + p[j].bt - p[j].btin - p[j].at;
+                p[j].waiting_time = t + p[j].burst_time - p[j].burst_time_init - p[j].arrival_time;
             }
             else if (p[j].ct[0] <= t && p[j].completed[1] != 1 && j != loc)
             {
-                p[j].wt = t - p[j].at - p[j].btin;
+                p[j].waiting_time = t - p[j].arrival_time - p[j].burst_time_init;
                 p[j].io = p[j].io - (t - p[j].ct[0]);
                 if (p[j].io <= 0)
                 {
                     p[j].completed[1] = 1;
                 }
             }
-            else if ((p[j].ct[0] + p[j].ioin) < t && p[j].completed[2] != 1 && j != loc)
+            else if ((p[j].ct[0] + p[j].io_init) < t && p[j].completed[2] != 1 && j != loc)
             {
-                p[j].wt = t - p[j].at - p[j].btin - p[j].btin2 + p[j].bt2;
+                p[j].waiting_time = t - p[j].arrival_time - p[j].burst_time_init - p[j].burst_time_init_2 + p[j].burst_time2;
             }
         }
         if (flag == 0)
         {
-            p[loc].bt -= q;
-            if (p[loc].bt < 0)
+            p[loc].burst_time -= q;
+            if (p[loc].burst_time < 0)
             {
-                p[loc].bt = 0;
+                p[loc].burst_time = 0;
             }
         }
         else if (flag == 2)
         {
-            p[loc].bt2 -= q;
-            if (p[loc].bt2 <= 0)
+            p[loc].burst_time2 -= q;
+            if (p[loc].burst_time2 <= 0)
             {
-                p[loc].bt2 = 0;
+                p[loc].burst_time2 = 0;
 
                 comp++;
             }
         }
     }
 
-    float att = 0.0, awt = 0.0;
+    float average_turnaround_time = 0.0, average_wait_time = 0.0;
     cout << setw(25) << "Process ID" << setw(25) << "Arrival Time" << setw(25) << "Burst Time" << setw(25) << "i/o Burst Time" << setw(25) << "Burst Time" << setw(25) << "Waiting Time" << setw(25) << "Turn-around Time" << endl;
     for (int i = 0; i < n; i++)
     {
-        p[i].tt = p[i].ct[1] - p[i].at;
-        p[i].wt = p[i].ct[1] - p[i].btin - p[i].btin2 - p[i].at;
-        cout << setw(25) << p[i].pid << setw(25) << p[i].at << setw(25) << p[i].btin << setw(25) << p[i].ioin << setw(25) << p[i].btin2 << setw(25) << p[i].wt << setw(25) << p[i].tt << endl;
-        att += p[i].tt;
-        awt += p[i].wt;
+        p[i].turnaround_time = p[i].ct[1] - p[i].arrival_time;
+        p[i].waiting_time = p[i].ct[1] - p[i].burst_time_init - p[i].burst_time_init_2 - p[i].arrival_time;
+        cout << setw(25) << p[i].pid << setw(25) << p[i].arrival_time << setw(25) << p[i].burst_time_init << setw(25) << p[i].io_init << setw(25) << p[i].burst_time_init_2 << setw(25) << p[i].waiting_time << setw(25) << p[i].turnaround_time << endl;
+        average_turnaround_time += p[i].turnaround_time;
+        average_wait_time += p[i].waiting_time;
     }
-    att = att / n;
-    awt /= n;
+    average_turnaround_time = average_turnaround_time / n;
+    average_wait_time /= n;
 
-    cout << "Average Turn-around Time: " << att << "\n"
-         << "Average Waiting Time: " << awt << "\n"
-         << "Throughput: " << n / (t - p[0].at) << "\n";
+    cout << "Average Turn-around Time: " << average_turnaround_time << "\n"
+         << "Average Waiting Time: " << average_wait_time << "\n"
+         << "Throughput: " << n / (t - p[0].arrival_time) << "\n";
     cout << "Comparision Table" << endl;
     cout << setw(25) << " " << setw(25) << "FCFS" << setw(25) << "SJF" << setw(25) << "Round Robin" << setw(25) << "NewAlgo" << endl;
-    cout << setw(25) << "Average Waiting Time " << setw(25) << fcfs[0] << setw(25) << sjf[0] << setw(25) << rr[0] << setw(25) << awt << endl;
-    cout << setw(25) << "Average Turnaround Time " << setw(25) << fcfs[1] << setw(25) << sjf[1] << setw(25) << rr[1] << setw(25) << att << endl;
+    cout << setw(25) << "Average Waiting Time " << setw(25) << fcfs[0] << setw(25) << sjf[0] << setw(25) << rr[0] << setw(25) << average_wait_time << endl;
+    cout << setw(25) << "Average Turnaround Time " << setw(25) << fcfs[1] << setw(25) << sjf[1] << setw(25) << rr[1] << setw(25) << average_turnaround_time << endl;
     return 0;
 }
