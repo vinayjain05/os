@@ -32,6 +32,144 @@ void sortByArrival()
     }
 }
 
+void shortest_job_first(int n, float sjf[])
+{
+    int comp_time[10] = {0}, cpu_end[10] = {0}, t = p[0].at + p[0].bt, f = 1, completed = 0;
+    int first = 0;
+    int q = p[0].bt;
+    int qio = -1;
+    int ioloc = 0, chgloc1 = -1, chgloc2 = -1;
+    cpu_end[0] = t;
+    p[0].bt = 0;
+
+    while (f)
+    {
+        first = 0;
+        ioloc = -1;
+        chgloc1 = -1;
+        chgloc2 = -1;
+        int firstchg1 = 0, firstchg2 = 0, firstchg = 0;
+
+        for (int i = 0; i < n; i++)
+        {
+            if (p[i].at <= t)
+            {
+                if (comp_time[i] == 0)
+                {
+
+                    if (p[i].bt <= 0 && p[i].bt2 <= 0 && p[i].io <= 0)
+                    {
+                        comp_time[i] = cpu_end[i];
+                        completed++;
+                    }
+                }
+            }
+        }
+        for (int i = 0; i < n; i++)
+        {
+            if (p[i].at <= t)
+            {
+                if (comp_time[i] == 0)
+                {
+                    if (cpu_end[i] != 0)
+                    {
+                        p[i].io = p[i].io - (t - cpu_end[i]);
+                        cpu_end[i] = t;
+                    }
+
+                    if (p[i].bt <= 0 && p[i].bt2 <= 0 && p[i].io <= 0)
+                    {
+                        comp_time[i] = t;
+                        completed++;
+                        continue;
+                    }
+                    else if (p[i].bt)
+                    {
+                        if (firstchg == 0)
+                        {
+                            q = p[i].bt;
+                            chgloc1 = i;
+                            firstchg = 1;
+                        }
+                        else if (p[i].bt < q)
+                        {
+                            q = p[i].bt;
+                            chgloc1 = i;
+                        }
+                        ioloc = -1;
+                    }
+                    else if (p[i].io > 0)
+                    {
+
+                        if (p[i].io > 0)
+                        {
+                            if (first == 0)
+                            {
+                                first = 1;
+                                qio = p[i].io;
+                                ioloc = i;
+                            }
+                            else if (qio > p[i].io)
+                            {
+                                qio = p[i].io;
+                                ioloc = i;
+                            }
+                        }
+                        else
+                            q = 1;
+                    }
+                    else if (p[i].bt2)
+                    {
+                        if (firstchg == 0)
+                        {
+                            q = p[i].bt2;
+                            chgloc2 = i;
+                            firstchg = 1;
+                        }
+                        else if (p[i].bt2 < q)
+                        {
+                            q = p[i].bt2;
+                            chgloc2 = i;
+                        }
+                        ioloc = -1;
+                    }
+                }
+            }
+            else
+                break;
+        }
+        if (chgloc1 != -1 || chgloc2 != -1)
+        {
+            if (chgloc1 != -1)
+            {
+                p[chgloc1].bt = 0;
+                cpu_end[chgloc1] = t + q;
+            }
+            else
+            {
+                p[chgloc2].bt2 = 0;
+                cpu_end[chgloc2] = t + q;
+            }
+        }
+        else
+        {
+            p[ioloc].io = p[ioloc].io - qio;
+            q = qio;
+        }
+        if (completed >= n)
+            f = 0;
+        t += q;
+    }
+    float wait_time = 0, turnaround_time = 0;
+    for (int i = 0; i < n; i++)
+    {
+        wait_time += comp_time[i] - p[i].at - p[i].btin - p[i].btin2;
+        turnaround_time += comp_time[i] - p[i].at;
+    }
+    sjf[0] = wait_time / n;
+    sjf[1] = turnaround_time / n;
+}
+
 void round_robin(int n, float rr[], int quant = 3)
 {
     int comp_time[10] = {0}, cpu_end[10] = {0}, t = p[0].at, f = 1, completed = 0, orig_quant = quant;
@@ -57,6 +195,21 @@ void round_robin(int n, float rr[], int quant = 3)
     while (f)
     {
         first = 0;
+        for (int i = 0; i < n; i++)
+        {
+            if (p[i].at <= t)
+            {
+                if (comp_time[i] == 0)
+                {
+
+                    if (p[i].bt <= 0 && p[i].bt2 <= 0 && p[i].io <= 0)
+                    {
+                        comp_time[i] = cpu_end[i];
+                        completed++;
+                    }
+                }
+            }
+        }
         for (int i = 0; i < n; i++)
         {
             if (p[i].at <= t)
@@ -100,7 +253,6 @@ void round_robin(int n, float rr[], int quant = 3)
                         else if (p[i].io > 0)
                         {
 
-                            // q = 1;
                             if (p[i].io > 0)
                             {
                                 if (first == 0)
@@ -114,7 +266,6 @@ void round_robin(int n, float rr[], int quant = 3)
                             else
                                 q = 1;
                             l = i;
-                            // p[i].io = p[i].io - q;
                         }
                         else if (p[i].bt2)
                         {
@@ -159,7 +310,6 @@ void round_robin(int n, float rr[], int quant = 3)
     {
         wait_time += comp_time[i] - p[i].at - p[i].btin - p[i].btin2;
         turnaround_time += comp_time[i] - p[i].at;
-        // cout << comp_time[i];
     }
     rr[0] = wait_time / n;
     rr[1] = turnaround_time / n;
@@ -170,12 +320,30 @@ void first_come_first_serve(int n, float fcfs[])
     int comp_time[10] = {0}, cpu_end[10] = {0}, t = p[0].at + p[0].bt, f = 1, completed = 0;
     int first = 0;
     int q = p[0].bt;
-    int minq = 0;
+    int ioloc = 0;
     cpu_end[0] = t;
     p[0].bt = 0;
+
     while (f)
     {
         first = 0;
+        ioloc = -1;
+
+        for (int i = 0; i < n; i++)
+        {
+            if (p[i].at <= t)
+            {
+                if (comp_time[i] == 0)
+                {
+
+                    if (p[i].bt <= 0 && p[i].bt2 <= 0 && p[i].io <= 0)
+                    {
+                        comp_time[i] = cpu_end[i];
+                        completed++;
+                    }
+                }
+            }
+        }
         for (int i = 0; i < n; i++)
         {
             if (p[i].at <= t)
@@ -199,37 +367,45 @@ void first_come_first_serve(int n, float fcfs[])
                         q = p[i].bt;
                         p[i].bt = 0;
                         cpu_end[i] = t + q;
+                        ioloc = -1;
                         break;
                     }
                     else if (p[i].io > 0)
                     {
 
-                        // q = 1;
                         if (p[i].io > 0)
                         {
                             if (first == 0)
                             {
                                 first = 1;
                                 q = p[i].io;
+                                ioloc = i;
                             }
                             else if (q > p[i].io)
+                            {
                                 q = p[i].io;
+                                ioloc = i;
+                            }
                         }
                         else
                             q = 1;
-                        // p[i].io = p[i].io - q;
                     }
                     else if (p[i].bt2)
                     {
                         q = p[i].bt2;
                         p[i].bt2 = 0;
                         cpu_end[i] = t + q;
+                        ioloc = -1;
                         break;
                     }
                 }
             }
             else
                 break;
+        }
+        if (ioloc != -1)
+        {
+            p[ioloc].io = p[ioloc].io - q;
         }
         if (completed >= n)
             f = 0;
@@ -240,7 +416,6 @@ void first_come_first_serve(int n, float fcfs[])
     {
         wait_time += comp_time[i] - p[i].at - p[i].btin - p[i].btin2;
         turnaround_time += comp_time[i] - p[i].at;
-        // cout << comp_time[i];
     }
     fcfs[0] = wait_time / n;
     fcfs[1] = turnaround_time / n;
@@ -285,16 +460,18 @@ int main()
         p[i].completed[2] = 0;
     }
     sortByArrival();
-    float fcfs[2];
-    float rr[2];
+    float fcfs[2], rr[2], sjf[2];
 
     first_come_first_serve(n, fcfs);
     cout << "FCFS Result: " << fcfs[0] << " " << fcfs[1] << "\n";
-    value_initializer();
+    value_initializer(); //initializes values of processes back to original for subsequent steps
 
     round_robin(n, rr);
     cout << "Round Robin Result: " << rr[0] << " " << rr[1] << "\n";
+    value_initializer();
 
+    shortest_job_first(n, sjf);
+    cout << "SJF Result: " << sjf[0] << " " << sjf[1] << "\n";
     value_initializer();
 
     t = p[0].at;
